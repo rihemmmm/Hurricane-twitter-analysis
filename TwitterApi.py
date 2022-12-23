@@ -38,11 +38,11 @@ def tweetcollector(search_words, date_since, date_until, numTweets, numRuns):
     stop = datetime.strptime(date_until, "%Y-%m-%d")
     j=5 #time sleep variable
     for i in range(0, numRuns):
-        while start < stop:  
-     
+        while start < stop: 
+            next_day  = start + timedelta(days=1)    
         # We will time how long it takes to scrape tweets for each run:
             tweets = tweepy.Cursor(api.search, q=search_words + " -filter:retweets", lang="en", exclude_replies=True,
-                               include_rts=False, since=start, until=date_until,
+                               include_rts=False, since=start, until=next_day,
                                tweet_mode='extended').items(numTweets)
 
             tweet_list = [tweet for tweet in tweets]
