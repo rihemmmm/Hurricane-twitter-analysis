@@ -27,7 +27,7 @@ auth.set_access_token(accesstoken, accesstokensecret)
 api = tweepy.API(auth)
 
 
-def tweetcollector(search_words, date_since, numTweets, numRuns):
+def tweetcollector(search_words, date_since, date_until, numTweets, numRuns):
     # Define a pandas dataframe to store the data
     df_tweets = pd.DataFrame(columns=['username', 'location', 'text', 'hashtags']
                              )
