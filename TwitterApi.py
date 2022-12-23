@@ -84,7 +84,7 @@ def tweetcollector(search_words, date_since, date_until, numTweets, numRuns):
 
                 # The pandas dataframe is converted into CSV fil Format.
                     df_tweets.to_csv(filename, index=False)
-            start = next_day
+            start = start + timedelta(days=1)
 
 # Initialise the variable for the function created
 
