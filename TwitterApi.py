@@ -38,55 +38,53 @@ def tweetcollector(search_words, date_since, date_until, numTweets, numRuns):
     stop = datetime.strptime(date_until, "%Y-%m-%d")
     j=5 #time sleep variable
     for i in range(0, numRuns):
-     
-      while start < stop:  
+        while start < stop:  
      
         # We will time how long it takes to scrape tweets for each run:
-
-        tweets = tweepy.Cursor(api.search, q=search_words + " -filter:retweets", lang="en", exclude_replies=True,
+            tweets = tweepy.Cursor(api.search, q=search_words + " -filter:retweets", lang="en", exclude_replies=True,
                                include_rts=False, since=start, until=date_until,
                                tweet_mode='extended').items(numTweets)
 
-        tweet_list = [tweet for tweet in tweets]
+            tweet_list = [tweet for tweet in tweets]
         
-        noTweets = 0
-        for tweet in tweet_list:
+            noTweets = 0
+            for tweet in tweet_list:
 
-            username = tweet.user.screen_name
-            location = tweet.user.location
-            hashtags = tweet.entities['hashtags']
+                username = tweet.user.screen_name
+                location = tweet.user.location
+                hashtags = tweet.entities['hashtags']
 
-            try:
-                # Check wether the tweet was re-tweeted.
+                try:
+                    # Check wether the tweet was re-tweeted.
 
-                text = tweet.retweeted_status.full_text
+                    text = tweet.retweeted_status.full_text
 
-            except AttributeError:
+                except AttributeError:
 
-                # if it Not a Retweeted tweet run the following code
+                    # if it Not a Retweeted tweet run the following code
 
-                text = tweet.full_text
+                    text = tweet.full_text
 
-                the_tweet = [username, location, text, hashtags]
+                    the_tweet = [username, location, text, hashtags]
 
-                df_tweets.loc[len(df_tweets)] = the_tweet
+                    df_tweets.loc[len(df_tweets)] = the_tweet
 
-                noTweets += 1
+                    noTweets += 1
                 
 
-                # 15 minute sleep time because of twitter requests limitation.
-                j+=10
-                time.sleep(j)
+                    # 15 minute sleep time because of twitter requests limitation.
+                    j+=10
+                    time.sleep(j)
 
-                tot_csv_timesamp = datetime.today().strftime('%Y%m%d_%H%M%S')
+                    tot_csv_timesamp = datetime.today().strftime('%Y%m%d_%H%M%S')
 
-                # Defining a path for storing the collected tweet
-                path = os.getcwd()
-                filename = path + '/HurricaneIan/' + tot_csv_timesamp + 'Hurricane Ian.csv'
+                    # Defining a path for storing the collected tweet
+                    path = os.getcwd()
+                    filename = path + '/HurricaneIan/' + tot_csv_timesamp + 'Hurricane Ian.csv'
 
                 # The pandas dataframe is converted into CSV fil Format.
-                df_tweets.to_csv(filename, index=False)
-         start = next_day
+                    df_tweets.to_csv(filename, index=False)
+            start = next_day
 
 # Initialise the variable for the function created
 
