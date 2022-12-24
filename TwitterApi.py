@@ -34,13 +34,14 @@ def tweetcollector(search_words, date_since, date_until, numTweets, numRuns):
     # Define a pandas dataframe to store the data
     df_tweets = pd.DataFrame(columns=['username', 'location', 'text', 'hashtags']
                              )
+    program_start = time.time()                          
     start = datetime.strptime(date_since, "%Y-%m-%d")
     stop = datetime.strptime(date_until, "%Y-%m-%d")
-    j=5 #time sleep variable
     for i in range(0, numRuns):
-        while start < stop: 
+        next_day  = start + timedelta(days=1) 
+        while start < stop  : 
             next_day  = start + timedelta(days=1)    
-        # We will time how long it takes to scrape tweets for each run:
+
             tweets = tweepy.Cursor(api.search, q=search_words + " -filter:retweets", lang="en", exclude_replies=True,
                                include_rts=False, since=start, until=next_day,
                                tweet_mode='extended').items(numTweets)
@@ -73,8 +74,8 @@ def tweetcollector(search_words, date_since, date_until, numTweets, numRuns):
                 
 
                     # 15 minute sleep time because of twitter requests limitation.
-                    j+=10
-                    time.sleep(j)
+                    
+                    time.sleep(940)
 
                     tot_csv_timesamp = datetime.today().strftime('%Y%m%d_%H%M%S')
 
@@ -85,12 +86,15 @@ def tweetcollector(search_words, date_since, date_until, numTweets, numRuns):
                 # The pandas dataframe is converted into CSV fil Format.
                     df_tweets.to_csv(filename, index=False)
             start = start + timedelta(days=1)
+               
+
 
 # Initialise the variable for the function created
 
 search_words = 'Ian hurricane OR Ian storm OR Ian extreme Weather OR #Ian_hurricane OR Ian flooding OR Ian Climate change OR #Hurricane_Ian OR Ian disaster OR Ian Hurricane evacuation OR Ian tornado  -is:retweet -is:reply place_country:US lang:en'
+
 date_since = '2022-09-20'
-NumberOfTweets = 30000
+NumberOfTweets = 2500
 NumberOfRuns = 6
 date_until = '2022-11-14'
 # Call the function tweetcollector
