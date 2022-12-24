@@ -88,11 +88,7 @@ def tweetcollector(search_words, date_since, date_until, numTweets, numRuns):
 
 # Initialise the variable for the function created
 
-search_words = 'Ian hurricane (Ian storm OR extreme Weather OR #Ian OR flooding Hospital OR Climate change OR ' \
-               '#Hurricane ' \
-               'OR Ian disaster storm Mental Health -is:retweet -is:reply place_country:US lang:en) -is:retweet -is:reply ' \
-               'place_country:US lang:en '
-
+search_words = 'Ian hurricane OR Ian storm OR Ian extreme Weather OR #Ian_hurricane OR Ian flooding OR Ian Climate change OR #Hurricane_Ian OR Ian disaster OR Ian Hurricane evacuation OR Ian tornado  -is:retweet -is:reply place_country:US lang:en'
 date_since = '2022-09-20'
 NumberOfTweets = 30000
 NumberOfRuns = 6
