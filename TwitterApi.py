@@ -33,59 +33,46 @@ api = tweepy.API(auth)
 def tweetcollector(search_words, date_since, date_until, numTweets, numRuns):
     # Define a pandas dataframe to store the data
     df_tweets = pd.DataFrame(columns=['username', 'location', 'text', 'hashtags']
-                             )
-    program_start = time.time()                          
+                             )                         
     start = datetime.strptime(date_since, "%Y-%m-%d")
     stop = datetime.strptime(date_until, "%Y-%m-%d")
-    for i in range(0, numRuns):
-        next_day  = start + timedelta(days=1) 
-        while start < stop  : 
-            next_day  = start + timedelta(days=1)    
-
+    for i in range(0, numRuns): 
+        next_fetch  = start + timedelta(seconds=940) 
+        while start < stop and noTweets<500 : 
+        
             tweets = tweepy.Cursor(api.search, q=search_words + " -filter:retweets", lang="en", exclude_replies=True,
-                               include_rts=False, since=start, until=next_day,
+                               include_rts=False, since=start,until =next_fetch, max_results=500,
                                tweet_mode='extended').items(numTweets)
 
             tweet_list = [tweet for tweet in tweets]
         
             noTweets = 0
             for tweet in tweet_list:
-
                 username = tweet.user.screen_name
                 location = tweet.user.location
                 hashtags = tweet.entities['hashtags']
+                # if it Not a Retweeted tweet run the following code
 
-                try:
-                    # Check wether the tweet was re-tweeted.
+                text = tweet.full_text
 
-                    text = tweet.retweeted_status.full_text
+                the_tweet = [username, location, text, hashtags]
 
-                except AttributeError:
+                df_tweets.loc[len(df_tweets)] = the_tweet
 
-                    # if it Not a Retweeted tweet run the following code
-
-                    text = tweet.full_text
-
-                    the_tweet = [username, location, text, hashtags]
-
-                    df_tweets.loc[len(df_tweets)] = the_tweet
-
-                    noTweets += 1
+                noTweets += 1
                 
+                tot_csv_timesamp = datetime.today().strftime('%Y%m%d_%H%M%S')
 
-                    # 15 minute sleep time because of twitter requests limitation.
-                    
-                    time.sleep(940)
-
-                    tot_csv_timesamp = datetime.today().strftime('%Y%m%d_%H%M%S')
-
-                    # Defining a path for storing the collected tweet
-                    path = os.getcwd()
-                    filename = path + '/HurricaneIan/' + tot_csv_timesamp + 'Hurricane Ian.csv'
+                # Defining a path for storing the collected tweet
+                path = os.getcwd()
+                filename = path + '/HurricaneIan/' + tot_csv_timesamp + 'Hurricane Ian.csv'
 
                 # The pandas dataframe is converted into CSV fil Format.
-                    df_tweets.to_csv(filename, index=False)
-            start = start + timedelta(days=1)
+                df_tweets.to_csv(filename, index=False)
+            time.sleep(940)
+            start  = start + timedelta(seconds=940) 
+
+            
                
 
 
