@@ -1,88 +1,93 @@
+import requests
+import base64
 import json
-import pandas as pd
-import csv
-import re
-from textblob import TextBlob
-import string
-import os
 import time
-from twitter_credentials import *
-from datetime import datetime
+import configparser
+import twitter_credentials
 
-from datetime import timedelta
+# Replace these with your own keys and tokens
 
+config = configparser.ConfigParser()
+config.read('config.ini')
 
-# Libraries for Twitter API
-import tweepy
-from tweepy import OAuthHandler
+api_key = config['twitter']['api_key']
+api_secret_key = config['twitter']['api_key_secret']
 
-# Accessing the credentials from twitterapi.py
-from twitter_api import access_token
+access_token = config['twitter']['access_tokenn']
+access_token_secret = config['twitter']['access_token_secret']
 
-accesstoken = access_token
-accesstokensecret = access_secret_token
-apikey = api_key
-apisecretkey = api_security_key
+# Concatenate the keys and tokens
+bearer_token_credentials = api_key + ':' + api_secret_key
 
-# Connecting to Twitter API
-auth = OAuthHandler(apikey, apisecretkey)
-auth.set_access_token(accesstoken, accesstokensecret)
-api = tweepy.API(auth)
+# Base64 encode the credentials
+bearer_token_credentials_bytes = bearer_token_credentials.encode('ascii')
+base64_encoded_bearer_token_credentials = base64.b64encode(bearer_token_credentials_bytes).decode('ascii')
 
+# Create the headers for the request
+headers = {
+    "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+    "Authorization": f"Basic {base64_encoded_bearer_token_credentials}"
+}
 
-def tweetcollector(search_words, date_since, date_until, numTweets, numRuns):
-    # Define a pandas dataframe to store the data
-    df_tweets = pd.DataFrame(columns=['username', 'location', 'text', 'hashtags']
-                             )                         
-    start = datetime.strptime(date_since, "%Y-%m-%d")
-    stop = datetime.strptime(date_until, "%Y-%m-%d")
-    for i in range(0, numRuns): 
-        next_fetch  = start + timedelta(seconds=940) 
-        while start < stop and noTweets<500 : 
-        
-            tweets = tweepy.Cursor(api.search, q=search_words + " -filter:retweets", lang="en", exclude_replies=True,
-                               include_rts=False, since=start,until =next_fetch, max_results=500,
-                               tweet_mode='extended').items(numTweets)
+# Make the request to the API
+response = requests.post("https://api.twitter.com/oauth2/token", headers=headers, data={"grant_type": "client_credentials"})
 
-            tweet_list = [tweet for tweet in tweets]
-        
-            noTweets = 0
-            for tweet in tweet_list:
-                username = tweet.user.screen_name
-                location = tweet.user.location
-                hashtags = tweet.entities['hashtags']
-                # if it Not a Retweeted tweet run the following code
+# Get the bearer token from the response
+bearer_token = response.json()["access_token"]
 
-                text = tweet.full_text
+# Use the bearer token to authenticate future requests
+headers = {
+    "Authorization": f"Bearer {bearer_token}"
+}
 
-                the_tweet = [username, location, text, hashtags]
+# Set the initial max_position to None
+max_position = None
 
-                df_tweets.loc[len(df_tweets)] = the_tweet
-
-                noTweets += 1
-                
-                tot_csv_timesamp = datetime.today().strftime('%Y%m%d_%H%M%S')
-
-                # Defining a path for storing the collected tweet
-                path = os.getcwd()
-                filename = path + '/HurricaneIan/' + tot_csv_timesamp + 'Hurricane Ian.csv'
-
-                # The pandas dataframe is converted into CSV fil Format.
-                df_tweets.to_csv(filename, index=False)
-            time.sleep(940)
-            start  = start + timedelta(seconds=940) 
-
-            
-               
+# Define the query and other parameters
+query = 'Ian hurricane OR Ian storm OR Ian extreme Weather OR #Ian_hurricane OR Ian flooding OR Ian Climate ' \
+               'change OR #Hurricane_Ian -is:retweet -is:reply place_country:US lang:en '
 
 
-# Initialise the variable for the function created
+# Define the endpoint
+endpoint = 'https://api.twitter.com/2/tweets/search/all'
+# Define the start and end date
+start_date = '2022-09-19T00:00:00Z'
+end_date = '2022-09-20T00:00:00Z'
 
-search_words = 'Ian hurricane OR Ian storm OR Ian extreme Weather OR #Ian_hurricane OR Ian flooding OR Ian Climate change OR #Hurricane_Ian OR Ian disaster OR Ian Hurricane evacuation OR Ian tornado OR Ian Bad weather OR Bad_weather Ian OR Ian badweather OR Hurricane Ian extreme weather OR extreme_weather OR extremeweather OR extreme weather event OR extreme_weather_event OR extreme_weatherevent  OR Ian hurricane OR hurricanes IAN OR Ian_Hurricane OR Ian_storm OR storm_IAN OR Hurricanes OR hurricanes OR IAN_storm OR storms OR IAN Hurricane OR IAN_hurricane OR hurricane Ian OR Hurricane_Ian OR TORNADO OR Tornadoes OR Ian tornado OR IANTORNADO OR Ian_Tornado OR  Ian disaster OR disasters OR IAN_disaster OR climate weather hurricane OR  OR Ian flood OR IAN_flood OR flood Ian OR flood IAN OR Ian_flooding OR Evacuation Hurricane OR hurricane Evacuation OR Evacuation Ian OR Ian evacuation hurricane OR Ian_evacuation OR Ian hurricane hospital OR Ian_hurricane_hospital OR Ian emergency OR IAN EMERGENCY OR IAN EVACUATION OR IAN_emergency_evacuation OR doctors evacuation hurricane hospital OR Ian Health insurance OR Hurricane health access OR Hurricane_Hospital_access OR hurricane_hospital_acces OR health care system Ian OR Ian health care system OR #Ian_hurricane OR #Ian_storm OR #Ian_extreme_Weather OR #Ian_hurricane OR #Ian_flooding OR #Ian_climate_change OR #Hurricane_Ian OR #Ian_disaster OR #Ian_Hurricane_evacuation OR #IanHurricaneevacuation OR #Ian_tornado OR #Iantornado OR #Bad_weather OR #Ian_Bad_weather OR #Ian_badweather OR #Ian_extreme_weather OR #Hurricanes_extreme_weather OR #hurricane_extreme_weather_event OR #extreme_weatherevent  OR #Ian_hurricane OR #hurricanes  OR #Ian_Hurricane OR #Ian_storm OR #storm_IAN OR #Hurricanes OR #IAN_storm OR #storms OR #IAN_Hurricane OR #IAN_hurricane OR #Hurricane_Ian OR #TORNADO OR #Tornadoes OR #Ian_tornado OR #IANTORNADO OR #Ian_Tornado OR  #Ian_disaster OR #Iandisaster OR #IAN_disaster OR #climate_weather_hurricane OR #Ian_flood OR #IAN_flood OR #flood_Ian OR #flood_IAN OR #Ian_flooding OR #Evacuation_hurricane OR #Evacuation_Hurricane OR #hurricane_Evacuation OR #Evacuation_Ian OR #Ian_evacuation_hurricane OR #Ian_evacuation OR #Ian_hurricane_hospital OR #Ian_hurricane_hospital OR #Ian_emergency OR #IAN_EMERGENCY OR #IAN_EVACUATION OR #IAN_emergency_evacuation OR #doctors_evacuation_hurricane_hospital OR #Ian_Health_insurance OR #Hurricane_health_access OR #Hurricane_Hospital_access OR #hurricane_hospital_access OR #healthcare_system_Ian OR #Ian_healthcare_system  -is:retweet -is:reply place_country:US lang:en '
+# Fetch tweets in a loop, updating the max_position each time
+while True:
+    # Define the parameters
+    params = {
+        "query": query,
+        "max_position": max_position,
+        "start_time": start_date,
+        "end_time": end_date
+    }
+    # Make the request
+    response = requests.get(endpoint, headers=headers, params=params)
 
-date_since = '2022-09-19'
-NumberOfTweets = 2500
-NumberOfRuns = 6
-date_until = '2022-11-14'
-# Call the function tweetcollector
-tweetcollector(search_words, date_since, date_until, NumberOfTweets, NumberOfRuns)
+    # Check the rate limit headers
+    rate_limit_remaining = response.headers.get("x-rate-limit-remaining")
+    rate_limit_reset = response.headers.get("x-rate-limit-reset")
+
+    # If the rate limit has been exceeded, wait until the rate limit resets
+    if rate_limit_remaining and int(rate_limit_remaining) == 0:
+        reset_time = int(rate_limit_reset)
+        current_time = int(time.time())
+        wait_time = reset_time - current_time
+        time.sleep(wait_time)
+        continue
+
+    if response.status_code == 200:
+        # Get the tweets
+        tweets = response.json()['data']
+        # Iterate over the tweets and process them as needed
+        for tweet in tweets:
+            print(tweet)
+    else:
+        print(f'Error: {response.status_code}')
+        print(response.text)
+
+# Convert the response to a pandas dataframe
+
+
