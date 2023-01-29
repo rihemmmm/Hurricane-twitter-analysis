@@ -1,0 +1,38 @@
+import pandas as pd
+import nltk
+import re
+from nltk.sentiment import SentimentIntensityAnalyzer
+nltk.download('vader_lexicon')
+import matplotlib.pyplot as plt
+
+def sentiment_analysis(tweet):
+    forecast_keywords = ['forecast', 'prediction', 'expected', 'projected']
+    news_keywords = ['news', 'update', 'breaking']
+    if any(word in tweet.lower() for word in forecast_keywords + news_keywords):
+        return 0.0
+    sentiment = SentimentIntensityAnalyzer().polarity_scores(tweet)
+    return sentiment['compound']
+def preprocess_tweet(tweet):
+    tweet = re.sub(r'^RT[\s]+', '', tweet)
+    tweet = re.sub(r'https?:\/\/.*[\r\n]*', '', tweet)
+    tweet = re.sub(r'#', '', tweet)
+    tweet = re.sub(r'@[A-Za-z0-9]+', '', tweet)
+    tweet = re.sub(r'[^\x00-\x7F]+', '', tweet)
+    tweet = re.sub(r'\n', '', tweet)
+    return tweet
+
+# Load tweets from Excel file into a DataFrame
+file_path = "tweets.xlsx"
+df = pd.read_excel(file_path, usecols=[0], header=None)
+df.columns = ['text']
+
+# Preprocess each tweet and analyze its sentiment
+df['sentiment'] = df['text'].apply(lambda x: preprocess_tweet(x))
+df['sentiment'] = df['sentiment'].apply(lambda x: sentiment_analysis(x))
+
+# Plot the distribution of sentiment scores
+plt.hist(df['sentiment'], bins=20)
+plt.xlabel("Sentiment Score")
+plt.ylabel("Number of Tweets")
+plt.title("Distribution of Sentiment Scores for Hurricane Healthcare Tweets")
+plt.show()
